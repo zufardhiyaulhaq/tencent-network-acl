@@ -1,0 +1,7 @@
+.tool-versions
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+.env
+.terraform.tfstate.lock.info
