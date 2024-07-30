@@ -9,15 +9,17 @@ locals {
   allow_3022_tcp_from_utility = formatlist("ACCEPT#%s#22#TCP", var.utility_subnets_cidr)
   allow_443_tcp_from_utility  = formatlist("ACCEPT#%s#80#TCP", var.utility_subnets_cidr)
 
-  allow_443_tcp_from_internet   = ["ACCEPT#0.0.0.0/0#443#TCP"]
-  allow_80_tcp_from_internet    = ["ACCEPT#0.0.0.0/0#80#TCP"]
-  allow_15012_tcp_from_internet = ["ACCEPT#0.0.0.0/0#15012#TCP"]
-  allow_15443_tcp_from_internet = ["ACCEPT#0.0.0.0/0#15443#TCP"]
+  allow_443_tcp_from_internet          = ["ACCEPT#0.0.0.0/0#443#TCP"]
+  allow_80_tcp_from_internet           = ["ACCEPT#0.0.0.0/0#80#TCP"]
+  allow_15012_tcp_from_internet        = ["ACCEPT#0.0.0.0/0#15012#TCP"]
+  allow_15443_tcp_from_internet        = ["ACCEPT#0.0.0.0/0#15443#TCP"]
+  allow_k8s_nodeport_tcp_from_internet = ["ACCEPT#0.0.0.0/0#30000-32767#TCP"]
 
-  allow_443_tcp_from_public   = formatlist("ACCEPT#%s#443#TCP", var.public_subnets_cidr)
-  allow_80_tcp_from_public    = formatlist("ACCEPT#%s#80#TCP", var.public_subnets_cidr)
-  allow_15012_tcp_from_public = formatlist("ACCEPT#%s#15012#TCP", var.public_subnets_cidr)
-  allow_15443_tcp_from_public = formatlist("ACCEPT#%s#15443#TCP", var.public_subnets_cidr)
+  allow_443_tcp_from_public          = formatlist("ACCEPT#%s#443#TCP", var.public_subnets_cidr)
+  allow_80_tcp_from_public           = formatlist("ACCEPT#%s#80#TCP", var.public_subnets_cidr)
+  allow_15012_tcp_from_public        = formatlist("ACCEPT#%s#15012#TCP", var.public_subnets_cidr)
+  allow_15443_tcp_from_public        = formatlist("ACCEPT#%s#15443#TCP", var.public_subnets_cidr)
+  allow_k8s_nodeport_tcp_from_public = formatlist("ACCEPT#%s#30000-32767#TCP", var.public_subnets_cidr)
 
   allow_all_tcp_from_application = formatlist("ACCEPT#%s#ALL#TCP", var.application_subnets_cidr)
 
@@ -41,6 +43,8 @@ resource "tencentcloud_vpc_acl" "public" {
     local.allow_80_tcp_from_internet,
     local.allow_15012_tcp_from_internet,
     local.allow_15443_tcp_from_internet,
+    # allow kubernetes nodeport from 0.0.0.0/0
+    local.allow_k8s_nodeport_tcp_from_internet,
     # Allow 9099 (kafka) from 0.0.0.0/0
     local.allow_9099_tcp_from_internet,
     var.additional_ingress_public_rules,
@@ -73,6 +77,8 @@ resource "tencentcloud_vpc_acl" "utility" {
     local.allow_80_tcp_from_internet,
     local.allow_15012_tcp_from_internet,
     local.allow_15443_tcp_from_internet,
+    # allow kubernetes nodeport from 0.0.0.0/0
+    local.allow_k8s_nodeport_tcp_from_internet,
     var.additional_ingress_utility_rules,
   )
   egress = [
@@ -108,6 +114,7 @@ resource "tencentcloud_vpc_acl" "application" {
     local.allow_80_tcp_from_public,
     local.allow_15012_tcp_from_public,
     local.allow_15443_tcp_from_public,
+    local.allow_k8s_nodeport_tcp_from_public,
     var.additional_ingress_application_rules,
   )
   egress = [
