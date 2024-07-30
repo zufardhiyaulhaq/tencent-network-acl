@@ -21,6 +21,8 @@ locals {
   allow_15443_tcp_from_public        = formatlist("ACCEPT#%s#15443#TCP", var.public_subnets_cidr)
   allow_k8s_nodeport_tcp_from_public = formatlist("ACCEPT#%s#30000-32767#TCP", var.public_subnets_cidr)
 
+  allow_all_from_tencent_healthcheck = ["ACCEPT#100.64.0.0/10#ALL#ALL"]
+
   allow_all_tcp_from_application = formatlist("ACCEPT#%s#ALL#TCP", var.application_subnets_cidr)
 
   allow_9099_tcp_from_public   = formatlist("ACCEPT#%s#9099#TCP", var.public_subnets_cidr)
@@ -45,6 +47,8 @@ resource "tencentcloud_vpc_acl" "public" {
     local.allow_15443_tcp_from_internet,
     # allow kubernetes nodeport from 0.0.0.0/0
     local.allow_k8s_nodeport_tcp_from_internet,
+    # allow all from tencent healthcheck
+    local.allow_all_from_tencent_healthcheck,
     # Allow 9099 (kafka) from 0.0.0.0/0
     local.allow_9099_tcp_from_internet,
     var.additional_ingress_public_rules,
@@ -79,6 +83,8 @@ resource "tencentcloud_vpc_acl" "utility" {
     local.allow_15443_tcp_from_internet,
     # allow kubernetes nodeport from 0.0.0.0/0
     local.allow_k8s_nodeport_tcp_from_internet,
+    # allow all from tencent healthcheck
+    local.allow_all_from_tencent_healthcheck,
     var.additional_ingress_utility_rules,
   )
   egress = [
@@ -114,6 +120,9 @@ resource "tencentcloud_vpc_acl" "application" {
     local.allow_80_tcp_from_public,
     local.allow_15012_tcp_from_public,
     local.allow_15443_tcp_from_public,
+    # allow all from tencent healthcheck
+    local.allow_all_from_tencent_healthcheck,
+    # allow kubernetes nodeport from Public subnet
     local.allow_k8s_nodeport_tcp_from_public,
     var.additional_ingress_application_rules,
   )
@@ -148,6 +157,8 @@ resource "tencentcloud_vpc_acl" "stateful" {
     local.allow_9099_tcp_from_public,
     # Allow all TCP from Application subnet
     local.allow_all_tcp_from_application,
+    # allow all from tencent healthcheck
+    local.allow_all_from_tencent_healthcheck,
     var.additional_ingress_stateful_rules,
   )
   egress = [
@@ -173,6 +184,8 @@ resource "tencentcloud_vpc_acl" "compliance" {
   name   = "compliance-network-acl"
   ingress = concat(
     local.allow_all_From_compliance,
+    # allow all from tencent healthcheck
+    local.allow_all_from_tencent_healthcheck,
     var.additional_ingress_compliance_rules,
   )
   egress = [
