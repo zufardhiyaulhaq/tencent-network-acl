@@ -10,7 +10,7 @@ locals {
   allow_443_tcp_from_utility  = formatlist("ACCEPT#%s#80#TCP", var.utility_subnets_cidr)
 
   reject_all_from_vpc     = formatlist("DROP#%s#ALL#ALL", var.vpc_cidr)
-  allow_all_from_internet = ["DROP#0.0.0.0/0#ALL#ALL"]
+  allow_all_from_internet = ["ACCEPT#0.0.0.0/0#ALL#ALL"]
 
   allow_443_tcp_from_public          = formatlist("ACCEPT#%s#443#TCP", var.public_subnets_cidr)
   allow_80_tcp_from_public           = formatlist("ACCEPT#%s#80#TCP", var.public_subnets_cidr)
