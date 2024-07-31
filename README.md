@@ -50,6 +50,7 @@ No modules.
 | <a name="input_stateful_subnets_id"></a> [stateful\_subnets\_id](#input\_stateful\_subnets\_id) | List of stateful subnets ID | `list(string)` | n/a | yes |
 | <a name="input_utility_subnets_cidr"></a> [utility\_subnets\_cidr](#input\_utility\_subnets\_cidr) | List of utility subnets CIDR | `list(string)` | n/a | yes |
 | <a name="input_utility_subnets_id"></a> [utility\_subnets\_id](#input\_utility\_subnets\_id) | List of utility subnets ID | `list(string)` | n/a | yes |
+| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | n/a | `list(string)` | n/a | yes |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC | `string` | n/a | yes |
 
 ## Outputs

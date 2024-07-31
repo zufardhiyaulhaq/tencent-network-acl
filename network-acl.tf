@@ -9,24 +9,16 @@ locals {
   allow_3022_tcp_from_utility = formatlist("ACCEPT#%s#22#TCP", var.utility_subnets_cidr)
   allow_443_tcp_from_utility  = formatlist("ACCEPT#%s#80#TCP", var.utility_subnets_cidr)
 
-  allow_443_tcp_from_internet          = ["ACCEPT#0.0.0.0/0#443#TCP"]
-  allow_80_tcp_from_internet           = ["ACCEPT#0.0.0.0/0#80#TCP"]
-  allow_15012_tcp_from_internet        = ["ACCEPT#0.0.0.0/0#15012#TCP"]
-  allow_15443_tcp_from_internet        = ["ACCEPT#0.0.0.0/0#15443#TCP"]
-  allow_k8s_nodeport_tcp_from_internet = ["ACCEPT#0.0.0.0/0#30000-32767#TCP"]
+  reject_all_from_vpc     = formatlist(["REJECT#0.0.0.0/0#ALL#ALL"], var.vpc_cidr)
+  allow_all_from_internet = ["ACCEPT#0.0.0.0/0#ALL#ALL"]
 
   allow_443_tcp_from_public          = formatlist("ACCEPT#%s#443#TCP", var.public_subnets_cidr)
   allow_80_tcp_from_public           = formatlist("ACCEPT#%s#80#TCP", var.public_subnets_cidr)
   allow_15012_tcp_from_public        = formatlist("ACCEPT#%s#15012#TCP", var.public_subnets_cidr)
   allow_15443_tcp_from_public        = formatlist("ACCEPT#%s#15443#TCP", var.public_subnets_cidr)
   allow_k8s_nodeport_tcp_from_public = formatlist("ACCEPT#%s#30000-32767#TCP", var.public_subnets_cidr)
-
-  allow_all_from_tencent_healthcheck = ["ACCEPT#100.64.0.0/10#ALL#ALL"]
-
-  allow_all_tcp_from_application = formatlist("ACCEPT#%s#ALL#TCP", var.application_subnets_cidr)
-
-  allow_9099_tcp_from_public   = formatlist("ACCEPT#%s#9099#TCP", var.public_subnets_cidr)
-  allow_9099_tcp_from_internet = ["ACCEPT#0.0.0.0/0#9099#TCP"]
+  allow_all_tcp_from_application     = formatlist("ACCEPT#%s#ALL#TCP", var.application_subnets_cidr)
+  allow_9099_tcp_from_public         = formatlist("ACCEPT#%s#9099#TCP", var.public_subnets_cidr)
 }
 
 resource "tencentcloud_vpc_acl" "public" {
@@ -40,17 +32,9 @@ resource "tencentcloud_vpc_acl" "public" {
     local.allow_3022_tcp_from_utility,
     # Allow 443 (kubernetes access) from Utility subnet
     local.allow_443_tcp_from_utility,
-    # Allow 80 & 443 & 15021 & 15443 from 0.0.0.0/0
-    local.allow_443_tcp_from_internet,
-    local.allow_80_tcp_from_internet,
-    local.allow_15012_tcp_from_internet,
-    local.allow_15443_tcp_from_internet,
-    # allow kubernetes nodeport from 0.0.0.0/0
-    local.allow_k8s_nodeport_tcp_from_internet,
-    # allow all from tencent healthcheck
-    local.allow_all_from_tencent_healthcheck,
-    # Allow 9099 (kafka) from 0.0.0.0/0
-    local.allow_9099_tcp_from_internet,
+    # reject rest from VPC but allow access from internet
+    local.reject_all_from_vpc,
+    local.allow_all_from_internet,
     var.additional_ingress_public_rules,
   )
   egress = [
@@ -76,15 +60,9 @@ resource "tencentcloud_vpc_acl" "utility" {
   ingress = concat(
     # Allow all port from Utility subnet
     local.allow_all_from_utility,
-    # Allow 80 & 443 & 15021 & 15443 from 0.0.0.0/0
-    local.allow_443_tcp_from_internet,
-    local.allow_80_tcp_from_internet,
-    local.allow_15012_tcp_from_internet,
-    local.allow_15443_tcp_from_internet,
-    # allow kubernetes nodeport from 0.0.0.0/0
-    local.allow_k8s_nodeport_tcp_from_internet,
-    # allow all from tencent healthcheck
-    local.allow_all_from_tencent_healthcheck,
+    # reject rest from VPC but allow access from internet
+    local.reject_all_from_vpc,
+    local.allow_all_from_internet,
     var.additional_ingress_utility_rules,
   )
   egress = [
@@ -120,10 +98,11 @@ resource "tencentcloud_vpc_acl" "application" {
     local.allow_80_tcp_from_public,
     local.allow_15012_tcp_from_public,
     local.allow_15443_tcp_from_public,
-    # allow all from tencent healthcheck
-    local.allow_all_from_tencent_healthcheck,
     # allow kubernetes nodeport from Public subnet
     local.allow_k8s_nodeport_tcp_from_public,
+    # reject rest from VPC but allow access from internet
+    local.reject_all_from_vpc,
+    local.allow_all_from_internet,
     var.additional_ingress_application_rules,
   )
   egress = [
@@ -157,8 +136,9 @@ resource "tencentcloud_vpc_acl" "stateful" {
     local.allow_9099_tcp_from_public,
     # Allow all TCP from Application subnet
     local.allow_all_tcp_from_application,
-    # allow all from tencent healthcheck
-    local.allow_all_from_tencent_healthcheck,
+    # reject rest from VPC but allow access from internet
+    local.reject_all_from_vpc,
+    local.allow_all_from_internet,
     var.additional_ingress_stateful_rules,
   )
   egress = [
@@ -184,8 +164,9 @@ resource "tencentcloud_vpc_acl" "compliance" {
   name   = "compliance-network-acl"
   ingress = concat(
     local.allow_all_From_compliance,
-    # allow all from tencent healthcheck
-    local.allow_all_from_tencent_healthcheck,
+    # reject rest from VPC but allow access from internet
+    local.reject_all_from_vpc,
+    local.allow_all_from_internet,
     var.additional_ingress_compliance_rules,
   )
   egress = [
