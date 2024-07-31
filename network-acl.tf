@@ -32,10 +32,12 @@ resource "tencentcloud_vpc_acl" "public" {
     local.allow_3022_tcp_from_utility,
     # Allow 443 (kubernetes access) from Utility subnet
     local.allow_443_tcp_from_utility,
+    # additional
+    var.additional_ingress_public_rules,
     # reject rest from VPC but allow access from internet
     local.reject_all_from_vpc,
     local.allow_all_from_internet,
-    var.additional_ingress_public_rules,
+
   )
   egress = [
     "ACCEPT#0.0.0.0/0#ALL#ALL",
@@ -60,10 +62,11 @@ resource "tencentcloud_vpc_acl" "utility" {
   ingress = concat(
     # Allow all port from Utility subnet
     local.allow_all_from_utility,
+    # additional
+    var.additional_ingress_utility_rules,
     # reject rest from VPC but allow access from internet
     local.reject_all_from_vpc,
     local.allow_all_from_internet,
-    var.additional_ingress_utility_rules,
   )
   egress = [
     "ACCEPT#0.0.0.0/0#ALL#ALL",
@@ -100,10 +103,11 @@ resource "tencentcloud_vpc_acl" "application" {
     local.allow_15443_tcp_from_public,
     # allow kubernetes nodeport from Public subnet
     local.allow_k8s_nodeport_tcp_from_public,
+    # additional
+    var.additional_ingress_application_rules,
     # reject rest from VPC but allow access from internet
     local.reject_all_from_vpc,
     local.allow_all_from_internet,
-    var.additional_ingress_application_rules,
   )
   egress = [
     "ACCEPT#0.0.0.0/0#ALL#ALL",
@@ -136,10 +140,11 @@ resource "tencentcloud_vpc_acl" "stateful" {
     local.allow_9099_tcp_from_public,
     # Allow all TCP from Application subnet
     local.allow_all_tcp_from_application,
+    # additional
+    var.additional_ingress_stateful_rules,
     # reject rest from VPC but allow access from internet
     local.reject_all_from_vpc,
     local.allow_all_from_internet,
-    var.additional_ingress_stateful_rules,
   )
   egress = [
     "ACCEPT#0.0.0.0/0#ALL#ALL",
@@ -164,10 +169,11 @@ resource "tencentcloud_vpc_acl" "compliance" {
   name   = "compliance-network-acl"
   ingress = concat(
     local.allow_all_From_compliance,
+    # additional
+    var.additional_ingress_compliance_rules,
     # reject rest from VPC but allow access from internet
     local.reject_all_from_vpc,
     local.allow_all_from_internet,
-    var.additional_ingress_compliance_rules,
   )
   egress = [
     "ACCEPT#0.0.0.0/0#ALL#ALL",
